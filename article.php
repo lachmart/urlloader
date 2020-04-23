@@ -66,9 +66,9 @@ class Article
         echo "<h3>Název menu: " . $this->nazev . ", HTML adresa: " . $this->htm_link . ", Adresa předka: " . $this->parrent . "</h3>";
         echo "URL: ".$this->seo_url(substr($this->nazev,0,50)).", ";
         if ($this->data){
-          //$htm = $this->minimize($this->data->find("body", 0)->innertext);
+          $htm = $this->minimize($this->data->find("body", 0)->innertext);
           //$htm = $this->data;
-        //  echo ("OBSAH: <br>" . $htm);
+          echo ("OBSAH: <br>" . $htm);
         }
         flush() ;
     }
