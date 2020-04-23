@@ -6,20 +6,25 @@
  * Date: 26.02.2018
  * Time: 13:30
  */
-const MAX_NACTENI = 30;
+const MAX_NACTENI = 100;
  //const CHECK_DUPLICATES_IN_DB = false; //kontroluje databázi, duplikované lokální kódy neukládá. KONTROLA NA NAČTENÍ DUPLIKÁTŮ PODLE HTML ODKAZU JE PROVEDENA VŽDY.
-const IS_WRITE_TO_DB = true; //true / false .. zápis do DB nebo výstup na obrazovku;
+const IS_WRITE_TO_DB = false; //true / false .. zápis do DB nebo výstup na obrazovku;
 
 const SERVERNAME = "localhost";
- const DATABASE  ="url_loader";
-//const DATABASE  ="lp.ikem.cz";
+// const DATABASE  ="url_loader";
+const DATABASE  ="lp_test";
 const USERNAME = "root";
 const PASSWORD = "";
 
-const HTTP_PATH = "https://www.olupaseka.cz/labPrirucka052017/";
+//const HTTP_PATH = "https://www.olupaseka.cz/labPrirucka052017/";
+//const HTM_INPUT_FILE = "HVEZDAABVT.htm";
+
 //const HTTP_PATH = "http://localhost/urlloader/htm/";
-const HTM_INPUT_FILE = "HVEZDAABVT.htm";
 //const HTM_INPUT_FILE = "HVEZDA.htm";
+
+const HTTP_PATH = "http://www2.ikem.cz/plm_lp/";
+const HTM_INPUT_FILE = "HVEZDALADA.htm";
+
 const LANGUAGE = 1;
 const USERID = 3;
 const CONTENTTYPE = 1;

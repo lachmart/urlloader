@@ -44,20 +44,30 @@ class Article
     {
       //           echo ("Obsah: " . $this->data->find("body", 0)->innertext);
       $htm = str_replace("&nbsp;", "", $htm);
-      $htm = strip_tags($htm, "<h1>, <h2>, <h3>,<div>, <table>, <tr>, <td>");
+      $htm = strip_tags($htm, "<h1>, <h2>, <h3>, <a>, <p>, <table>, <tr>, <td>");
       $htm = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $htm);
       //            echo ("Obsah: " . preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $this->data->find("body", 0)->innertext));
       return $htm;
 
     }
 
+    function seo_url($name) {
+        $url = $name;
+        $url = preg_replace('~[^\\pL0-9_]+~u', '-', $url);
+        $url = trim($url, "-");
+        $url = iconv("utf-8", "us-ascii//TRANSLIT", $url);
+        $url = strtolower($url);
+        $url = preg_replace('~[^-a-z0-9_]+~', '', $url);
+        return $url;
+    }
+
     public function just_print()
     {
-        echo ("<hr>");
         echo "<h3>Název menu: " . $this->nazev . ", HTML adresa: " . $this->htm_link . ", Adresa předka: " . $this->parrent . "</h3>";
+        echo "URL: ".$this->seo_url(substr($this->nazev,0,50)).", ";        
         if ($this->data){
           $htm = $this->minimize($this->data->find("body", 0)->innertext);
-          echo ("Obsah: <br>" . $htm);
+          echo ("OBSAH: <br>" . $htm);
         }
         flush() ;
     }
@@ -87,11 +97,10 @@ class Article
       if ($result->num_rows > 0) {
         $articleId = $result->fetch_assoc()["id"];
         echo "<h4>Článek nalezen v db id: ". $articleId ." nazev: ". $this->nazev ."</h4>";
-
       }
       else{
         $sql = sprintf("INSERT INTO article(name, name_mr, content, create_on, lang_id, create_by, meta_description)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev,  $this->minimize($this->data->find("body", 0)->innertext),  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link);
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", substr($this->nazev,50), $this->seo_url(substr($this->nazev,0,50)),  $this->minimize($this->data->find("body", 0)->innertext),  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link);
 
         if ($conn->query($sql) === TRUE) {
             $articleId = $conn->insert_id;
@@ -113,8 +122,8 @@ class Article
         echo "<h4>Menu nalezeno v db id: ". $menuId ." nazev: ". $this->nazev ."</h4>";
       }
       else{
-        $sql = sprintf("INSERT INTO www_menu(name, name_mr, title, meta_description, meta_keywords, lang_id, custom_url)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev,$this->nazev, ' ', ' ',LANGUAGE,  $this->htm_link);
+        $sql = sprintf("INSERT INTO www_menu(name, name_mr, title, meta_description, meta_keywords, lang_id)
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev, $this->nazev, $this->htm_link, ' ',LANGUAGE);
 
         if ($conn->query($sql) === TRUE) {
             $menuId = $conn->insert_id;
