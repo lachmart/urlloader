@@ -9,7 +9,7 @@
 date_default_timezone_set('Europe/Prague');
 class Article
 {
-    public $parent;
+    public $parrent;
     public $htm_link;
     public $nazev;
     public $data;
@@ -46,7 +46,7 @@ class Article
       $htm = str_replace("&nbsp;", "", $htm);
       $htm = strip_tags($htm, "<h1>, <h2>, <h3>, <a>, <p>, <table>, <tr>, <td>");
       $htm = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $htm);
-      //            echo ("Obsah: " . preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $this->data->find("body", 0)->innertext));
+      //echo ("Obsah: " . preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $this->data->find("body", 0)->innertext));
       return $htm;
 
     }
@@ -64,10 +64,11 @@ class Article
     public function just_print()
     {
         echo "<h3>Název menu: " . $this->nazev . ", HTML adresa: " . $this->htm_link . ", Adresa předka: " . $this->parrent . "</h3>";
-        echo "URL: ".$this->seo_url(substr($this->nazev,0,50)).", ";        
+        echo "URL: ".$this->seo_url(substr($this->nazev,0,50)).", ";
         if ($this->data){
-          $htm = $this->minimize($this->data->find("body", 0)->innertext);
-          echo ("OBSAH: <br>" . $htm);
+          //$htm = $this->minimize($this->data->find("body", 0)->innertext);
+          //$htm = $this->data;
+        //  echo ("OBSAH: <br>" . $htm);
         }
         flush() ;
     }
@@ -114,16 +115,34 @@ class Article
     }
 
     private function save_www_menu($conn){
-      $sql = "SELECT id FROM www_menu WHERE custom_url='".$this->htm_link."'";
-      $result = $conn->query($sql);
-      //var_dump($result);
-      if ($result->num_rows > 0) {
-        $menuId=$result->fetch_assoc()["id"];
-        echo "<h4>Menu nalezeno v db id: ". $menuId ." nazev: ". $this->nazev ."</h4>";
+      // $sql = "SELECT id FROM www_menu WHERE custom_url='".$this->htm_link."'";
+      // $result = $conn->query($sql);
+      // //var_dump($result);
+      // if ($result->num_rows > 0) {
+      //   $menuId=$result->fetch_assoc()["id"];
+      //   echo "<h4>Menu nalezeno v db id: ". $menuId ." nazev: ". $this->nazev ."</h4>";
+      // }
+      // else{
+      $parentId = 0;
+      //parrent
+      if($this->parrent){
+        $sql = "SELECT id FROM www_menu WHERE custom_url='".$this->parrent."'";
+        $result = $conn->query($sql);
+        //var_dump($result);
+        if ($result->num_rows > 0) {
+          while ($row = $result->fetch_assoc()) {
+            $parentId=$row["id"];
+          }
+        }
+          echo "<h4>Parrent menu nalezeno v db id: ".$parentId ."</h4>";
+        }
+        else{
+
       }
-      else{
-        $sql = sprintf("INSERT INTO www_menu(name, name_mr, title, meta_description, meta_keywords, lang_id)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev, $this->nazev, $this->htm_link, ' ',LANGUAGE);
+
+
+        $sql = sprintf("INSERT INTO www_menu(name, name_mr, title, meta_description, meta_keywords, lang_id, id_precursor)
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev, $this->nazev, $this->htm_link, ' ',LANGUAGE, $parentId);
 
         if ($conn->query($sql) === TRUE) {
             $menuId = $conn->insert_id;
@@ -132,7 +151,7 @@ class Article
         } else {
             trigger_error("SQL error: " . $conn->error . "\n" . $sql . "\n\n");
         }
-      }
+      //}
       return $menuId;
     }
 
