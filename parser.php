@@ -16,14 +16,14 @@ const DATABASE  ="url_loader";
 const USERNAME = "root";
 const PASSWORD = "";
 
-const HTTP_PATH = "https://www.olupaseka.cz/labPrirucka052017/";
-const HTM_INPUT_FILE = "HVEZDAABVT.htm";
+// const HTTP_PATH = "https://www.olupaseka.cz/labPrirucka052017/";
+// const HTM_INPUT_FILE = "HVEZDAABVT.htm";
 
 //const HTTP_PATH = "http://localhost/urlloader/htm/";
 //const HTM_INPUT_FILE = "HVEZDA.htm";
 
-//const HTTP_PATH = "http://www2.ikem.cz/plm_lp/";
-//const HTM_INPUT_FILE = "HVEZDALADA.htm";
+const HTTP_PATH = "http://www2.ikem.cz/plm_lp/";
+const HTM_INPUT_FILE = "HVEZDALADA.htm";
 
 const LANGUAGE = 1;
 const USERID = 3;
@@ -81,22 +81,32 @@ class Parser
           $this->vyhodnoceno += 1;
 
               $article = new Article($e['name'],$e['link'], $e['parrent']);
-              $article->parse(HTTP_PATH.$e['link']);
+
+              if(substr( $e['link'], 0, 4 ) === "http" || substr( $e['link'], 0, 4 ) === "www.")
+              {
+                $article->parseGlobal();
+              }
+              else{
+                  $article->parse(HTTP_PATH.$e['link']);
+              }
+
 
                if (IS_WRITE_TO_DB)
                   $article->save($this->conn);
                else
                    $article->just_print();
               $this->ulozeno +=1;
-echo memory_get_usage() . "\n";
-              foreach($article->data->find('a') as $a){
-                 if(substr( $a->href, 0, 4 ) === "HVEZ")
-                 {
-                  $child["parrent"] = trim(rtrim($e['link']));
-                  $child["name"] = trim(rtrim($a->plaintext));
-                  $child["link"] = trim(rtrim($a->href));
-                  array_push($this->html, $child);
-                 }
+
+              if($article->data !== null){
+                foreach($article->data->find('a') as $a){
+                   // if(substr( $a->href, 0, 6 ) === "HVEZDA")
+                   // {
+                    $child["parrent"] = trim(rtrim($e['link']));
+                    $child["name"] = trim(rtrim($a->plaintext));
+                    $child["link"] = trim(rtrim($a->href));
+                    array_push($this->html, $child);
+                   // }
+                }
               }
               $article = null;
               gc_collect_cycles();

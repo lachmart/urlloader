@@ -13,12 +13,20 @@ class Article
     public $htm_link;
     public $nazev;
     public $data;
+    public $note;
+
 
     public function __construct($nazev, $htm, $parrent)
     {
-        $this->nazev = $nazev;
+        if($nazev == '')
+          $this->nazev = "——Neuvedeno——";
+        else
+          $this->nazev = $nazev;
+
         $this->htm_link = $htm;
         $this->parrent = $parrent;
+        $this->note = '';
+        $this->data = null;
     }
 
     /**
@@ -31,13 +39,20 @@ class Article
         $dom = file_get_html($address);
         if($dom == false)
         {
-            trigger_error("something went wrong with:".$address);
-            return NULL;
+            //trigger_error("something went wrong with:".$address);
+            //return NULL;
+            echo "URL NENALEZANA: ".$address."<br>";
+            $this->note = "url nezpracovana";
         }
-        $this->data = $dom;
+        else
+          $this->data = $dom;
 
       //  echo($this->nazev);
         //var_dump($dom);
+    }
+
+    public function parseGlobal(){
+          $this->note = "Global url: ".$this->htm_link." nenacitame obsah.";
     }
 
     private function minimize($htm)
@@ -68,7 +83,10 @@ class Article
         if ($this->data){
           $htm = $this->minimize($this->data->find("body", 0)->innertext);
           //$htm = $this->data;
-        //  echo ("OBSAH: <br>" . $htm);
+          echo ("OBSAH: <br>" . $htm);
+        }
+        else {
+          echo("poznámka: ".$this->note."<br>");
         }
         flush() ;
     }
@@ -81,6 +99,7 @@ class Article
         //   $htm = $this->minimize($this->data->find("body", 0)->innertext);
         //   echo ("Obsah: <br>" . $htm);
         // }
+        echo("poznámka: ".$this->note."<br>");
 
         flush();
 
@@ -100,8 +119,12 @@ class Article
         echo "<h4>Článek nalezen v db id: ". $articleId ." nazev: ". $this->nazev ."</h4>";
       }
       else{
-        $sql = sprintf("INSERT INTO article(name, name_mr, title, content, create_on, lang_id, create_by, meta_description)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->seo_url($this->nazev), $this->nazev, $conn->real_escape_string($this->minimize($this->data->find("body", 0)->innertext)),  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link);
+        $data = '';
+        if ($this->data)
+          $data = $conn->real_escape_string($this->minimize($this->data->find("body", 0)->innertext));
+
+        $sql = sprintf("INSERT INTO article(name, name_mr, title, content, create_on, lang_id, create_by, meta_description, meta_keywords)
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->seo_url($this->nazev), $this->nazev, $data,  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link, $this->note);
 
         if ($conn->query($sql) === TRUE) {
             $articleId = $conn->insert_id;
@@ -181,7 +204,7 @@ class Article
     }
 
     function __destruct() {
+      if($this->data)
         $this->data->clear();
-        unset($this->html);
     }
 }
