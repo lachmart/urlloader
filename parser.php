@@ -6,13 +6,13 @@
  * Date: 26.02.2018
  * Time: 13:30
  */
-const MAX_NACTENI = 100;
+const MAX_NACTENI = 100000;
  //const CHECK_DUPLICATES_IN_DB = false; //kontroluje databázi, duplikované lokální kódy neukládá. KONTROLA NA NAČTENÍ DUPLIKÁTŮ PODLE HTML ODKAZU JE PROVEDENA VŽDY.
-const IS_WRITE_TO_DB = TRUE; //true / false .. zápis do DB nebo výstup na obrazovku;
+const IS_WRITE_TO_DB = true; //true / false .. zápis do DB nebo výstup na obrazovku;
 
 const SERVERNAME = "localhost";
-//const DATABASE  ="url_loader";
-const DATABASE  ="lp_test";
+const DATABASE  ="url_loader";
+//const DATABASE  ="lp_test";
 const USERNAME = "root";
 const PASSWORD = "";
 
@@ -80,7 +80,7 @@ class Parser
           $e = array_shift($this->html);
           $this->vyhodnoceno += 1;
 
-              $article = new Article(trim(rtrim($e['name'])),trim(rtrim($e['link'])), $e['parrent']);
+              $article = new Article($e['name'],$e['link'], $e['parrent']);
               $article->parse(HTTP_PATH.$e['link']);
 
                if (IS_WRITE_TO_DB)
@@ -88,13 +88,13 @@ class Parser
                else
                    $article->just_print();
               $this->ulozeno +=1;
-
+echo memory_get_usage() . "\n";
               foreach($article->data->find('a') as $a){
                  if(substr( $a->href, 0, 4 ) === "HVEZ")
                  {
                   $child["parrent"] = trim(rtrim($e['link']));
                   $child["name"] = trim(rtrim($a->plaintext));
-                  $child["link"] = $a->href;
+                  $child["link"] = trim(rtrim($a->href));
                   array_push($this->html, $child);
                  }
               }

@@ -68,7 +68,7 @@ class Article
         if ($this->data){
           $htm = $this->minimize($this->data->find("body", 0)->innertext);
           //$htm = $this->data;
-          echo ("OBSAH: <br>" . $htm);
+        //  echo ("OBSAH: <br>" . $htm);
         }
         flush() ;
     }
@@ -100,8 +100,8 @@ class Article
         echo "<h4>Článek nalezen v db id: ". $articleId ." nazev: ". $this->nazev ."</h4>";
       }
       else{
-        $sql = sprintf("INSERT INTO article(name, name_mr, content, create_on, lang_id, create_by, meta_description)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", substr($this->nazev,50), $this->seo_url(substr($this->nazev,0,50)),  $this->minimize($this->data->find("body", 0)->innertext),  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link);
+        $sql = sprintf("INSERT INTO article(name, name_mr, title, content, create_on, lang_id, create_by, meta_description)
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->seo_url($this->nazev), $this->nazev, $conn->real_escape_string($this->minimize($this->data->find("body", 0)->innertext)),  date("Y-m-d H:i:s"), LANGUAGE, USERID,  $this->htm_link);
 
         if ($conn->query($sql) === TRUE) {
             $articleId = $conn->insert_id;
@@ -126,7 +126,7 @@ class Article
       $parentId = 0;
       //parrent
       if($this->parrent){
-        $sql = "SELECT id FROM www_menu WHERE custom_url='".$this->parrent."'";
+        $sql = "SELECT id FROM www_menu WHERE meta_description='".$this->parrent."'";
         $result = $conn->query($sql);
         //var_dump($result);
         if ($result->num_rows > 0) {
@@ -142,7 +142,7 @@ class Article
 
 
         $sql = sprintf("INSERT INTO www_menu(name, name_mr, title, meta_description, meta_keywords, lang_id, id_precursor)
-                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", $this->nazev, $this->nazev, $this->nazev, $this->htm_link, ' ',LANGUAGE, $parentId);
+                        VALUES ('%s','%s', '%s', '%s', '%s', '%s', '%s')", substr($this->nazev,0,50), $this->seo_url(substr($this->nazev,0,50)), $this->nazev, $this->htm_link, ' ',LANGUAGE, $parentId);
 
         if ($conn->query($sql) === TRUE) {
             $menuId = $conn->insert_id;
