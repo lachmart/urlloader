@@ -24,6 +24,9 @@ const PASSWORD = "";
 
 const HTTP_PATH = "http://www2.ikem.cz/plm_lp/";
 const HTM_INPUT_FILE = "HVEZDALADA.htm";
+const MAX_DEEP = 2;
+
+$dontParse = ["HVEZDAXAJK.htm", "HVEZDALADA.htm"];
 
 const LANGUAGE = 1;
 const USERID = 3;
@@ -39,11 +42,12 @@ if(!($html = file_get_html(HTTP_PATH.HTM_INPUT_FILE)))
 $links = [] ;
 foreach($html->find('a') as $l){
     $link["parrent"] = '';
+    $link["depth"] = 0;
     $link["name"] = trim(rtrim($l->plaintext));
     $link["link"] = $l->href;
     array_push($links, $link);
 }
-$parser = new Parser($links);
+$parser = new Parser($links, $dontParse);
 $parser->parse_all();
 
 class Parser
@@ -53,8 +57,9 @@ class Parser
     public $vyhodnoceno;
     public $duplikatu;
     public $ulozeno;
+    public $dontParse;
 
-    public function __construct($html)
+    public function __construct($html, $dontParse)
     {
         if(IS_WRITE_TO_DB) {
             $this->conn = new mysqli(SERVERNAME, USERNAME, PASSWORD, DATABASE);
@@ -68,6 +73,7 @@ class Parser
         $this->ulozeno = 0;
         $this->duplikatu = 0;
         $this->html = $html;
+        $this->dontParse= $dontParse;
       //  var_dump($this->html);
 
     }
@@ -80,6 +86,9 @@ class Parser
           $e = array_shift($this->html);
           $this->vyhodnoceno += 1;
 
+          $forbidden = in_array($e['link'], $this->dontParse);
+
+          if($e['depth'] <= MAX_DEEP && !$forbidden){
               $article = new Article($e['name'],$e['link'], $e['parrent']);
 
               if(substr( $e['link'], 0, 4 ) === "http" || substr( $e['link'], 0, 4 ) === "www.")
@@ -102,6 +111,7 @@ class Parser
                    // if(substr( $a->href, 0, 6 ) === "HVEZDA")
                    // {
                     $child["parrent"] = trim(rtrim($e['link']));
+                    $child["depth"] = $e['depth']+1;
                     $child["name"] = trim(rtrim($a->plaintext));
                     $child["link"] = trim(rtrim($a->href));
                     array_push($this->html, $child);
@@ -111,6 +121,10 @@ class Parser
               $article = null;
               gc_collect_cycles();
               flush() ;
+          }
+          else {
+            echo ("Přeskakuji ".$e["name"]." - ".$e["link"]." - max hloubka, nebo shoda s výčtem souborů<br>");
+          }
 
 
                 if(!count($this->html))
